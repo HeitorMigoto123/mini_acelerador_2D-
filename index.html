@@ -30,6 +30,20 @@
       color: #ff4444;
       font-weight: bold;
     }
+
+    select {
+      background-color: #333;
+      color: white;
+      border: none;
+      padding: 5px;
+      margin-top: 10px;
+    }
+
+    #elemento-info {
+      margin-top: 20px;
+      font-size: 1.1em;
+      font-weight: bold;
+    }
   </style>
 </head>
 <body>
@@ -41,6 +55,16 @@
     <div class="info">💥 Colisões: <span id="contador">0</span></div>
     <div class="info">⏱️ Última colisão: <span id="tempo">0</span>s atrás</div>
     <div class="info colisao" id="mensagem"></div>
+    <div class="info">
+      <label for="particula">Escolha uma partícula:</label>
+      <select id="particula">
+        <option value="hidrogenio">Hidrogênio (H)</option>
+        <option value="hélio">Hélio (He)</option>
+        <option value="chumbo">Chumbo (Pb)</option>
+        <option value="oxigenio">Oxigênio (O)</option>
+      </select>
+    </div>
+    <div id="elemento-info"></div>
   </div>
 
   <script>
@@ -50,6 +74,8 @@
     const msg = document.getElementById("mensagem");
     const contadorSpan = document.getElementById("contador");
     const tempoSpan = document.getElementById("tempo");
+    const elementoInfo = document.getElementById("elemento-info");
+    const selectParticula = document.getElementById("particula");
 
     let angle1 = 0;
     let angle2 = Math.PI;
@@ -63,6 +89,14 @@
 
     const explosoes = [];
 
+    let particula = {
+      nome: "Hidrogênio",
+      cor1: "#00ffff",
+      cor2: "#ff4444",
+      tamanho: 8
+    };
+
+    // Função para criar explosão visual
     function criarExplosao(x, y) {
       for (let i = 0; i < 20; i++) {
         explosoes.push({
@@ -74,6 +108,7 @@
       }
     }
 
+    // Função para desenhar as explosões
     function desenharExplosoes() {
       for (let i = explosoes.length - 1; i >= 0; i--) {
         const p = explosoes[i];
@@ -88,6 +123,26 @@
       }
     }
 
+    // Função para alterar os parâmetros da partícula conforme a seleção
+    function trocarParticula() {
+      const valor = selectParticula.value;
+
+      if (valor === "hidrogenio") {
+        particula = { nome: "Hidrogênio", cor1: "#00ffff", cor2: "#ff4444", tamanho: 8 };
+        elementoInfo.textContent = "Hidrogênio (H): Partícula leve, mais rápida.";
+      } else if (valor === "hélio") {
+        particula = { nome: "Hélio", cor1: "#ffcc00", cor2: "#ff6600", tamanho: 10 };
+        elementoInfo.textContent = "Hélio (He): Menor densidade, ainda mais rápido.";
+      } else if (valor === "chumbo") {
+        particula = { nome: "Chumbo", cor1: "#aaaaaa", cor2: "#666666", tamanho: 12 };
+        elementoInfo.textContent = "Chumbo (Pb): Partícula pesada e mais lenta.";
+      } else if (valor === "oxigenio") {
+        particula = { nome: "Oxigênio", cor1: "#00ff00", cor2: "#ff0000", tamanho: 10 };
+        elementoInfo.textContent = "Oxigênio (O): Partícula moderadamente rápida.";
+      }
+    }
+
+    // Função principal de desenho do acelerador
     function drawAccelerator() {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -104,37 +159,37 @@
       ctx.lineWidth = 10;
       ctx.stroke();
 
-      // Coordenadas das partículas (mesmo raio)
+      // Posições das partículas (no mesmo raio)
       const x1 = center.x + radius * Math.cos(angle1);
       const y1 = center.y + radius * Math.sin(angle1);
 
       const x2 = center.x + radius * Math.cos(angle2);
       const y2 = center.y + radius * Math.sin(angle2);
 
-      // Partícula 1 (azul)
+      // Desenha a primeira partícula
       ctx.beginPath();
-      ctx.arc(x1, y1, 8, 0, Math.PI * 2);
-      ctx.fillStyle = "#00ffff";
-      ctx.shadowColor = "#00ffff88";
+      ctx.arc(x1, y1, particula.tamanho, 0, Math.PI * 2);
+      ctx.fillStyle = particula.cor1;
+      ctx.shadowColor = particula.cor1;
       ctx.shadowBlur = 10;
       ctx.fill();
       ctx.shadowBlur = 0;
 
-      // Partícula 2 (vermelha)
+      // Desenha a segunda partícula
       ctx.beginPath();
-      ctx.arc(x2, y2, 8, 0, Math.PI * 2);
-      ctx.fillStyle = "#ff4444";
-      ctx.shadowColor = "#ff444488";
+      ctx.arc(x2, y2, particula.tamanho, 0, Math.PI * 2);
+      ctx.fillStyle = particula.cor2;
+      ctx.shadowColor = particula.cor2;
       ctx.shadowBlur = 10;
       ctx.fill();
       ctx.shadowBlur = 0;
 
-      // Verifica colisão real
+      // Verifica colisão
       const dx = x1 - x2;
       const dy = y1 - y2;
       const dist = Math.sqrt(dx * dx + dy * dy);
 
-      if (dist < 16 && !colisaoAnterior) {
+      if (dist < particula.tamanho * 2 && !colisaoAnterior) {
         contadorColisoes++;
         contadorSpan.textContent = contadorColisoes;
         tempoUltimaColisao = 0;
@@ -143,7 +198,7 @@
         colisaoAnterior = true;
       }
 
-      if (dist >= 16) {
+      if (dist >= particula.tamanho * 2) {
         colisaoAnterior = false;
         msg.textContent = "";
       }
@@ -159,14 +214,16 @@
       requestAnimationFrame(drawAccelerator);
     }
 
-    canvas.addEventListener("click", () => {
-      speed += 0.005;
-    });
+    // Atualiza as partículas quando o usuário seleciona algo
+    selectParticula.addEventListener("change", trocarParticula);
 
+    // Inicializa a simulação
+    trocarParticula();
     drawAccelerator();
   </script>
 </body>
 </html>
+
 
 
 
