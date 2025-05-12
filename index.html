@@ -17,9 +17,16 @@
       margin-top: 20px;
     }
 
-    #mensagem {
-      margin-top: 20px;
+    #painel {
+      margin-top: 15px;
       font-size: 1.2em;
+    }
+
+    .info {
+      margin: 5px 0;
+    }
+
+    .colisao {
       color: #ff4444;
       font-weight: bold;
     }
@@ -29,25 +36,71 @@
   <h1>Mini Colisor de Partículas</h1>
   <canvas id="acceleratorCanvas" width="500" height="500"></canvas>
   <p>Clique na tela para acelerar as partículas!</p>
-  <div id="mensagem"></div>
+
+  <div id="painel">
+    <div class="info">💥 Colisões: <span id="contador">0</span></div>
+    <div class="info">⏱️ Última colisão: <span id="tempo">0</span>s atrás</div>
+    <div class="info colisao" id="mensagem"></div>
+  </div>
 
   <script>
     const canvas = document.getElementById("acceleratorCanvas");
     const ctx = canvas.getContext("2d");
+
     const msg = document.getElementById("mensagem");
+    const contadorSpan = document.getElementById("contador");
+    const tempoSpan = document.getElementById("tempo");
 
     let angle1 = 0;
     let angle2 = Math.PI;
     let speed = 0.01;
     const center = { x: canvas.width / 2, y: canvas.height / 2 };
 
-    const radius1 = 180; // Partícula azul (mais interna)
-    const radius2 = 200; // Partícula laranja (mais externa)
+    const radius1 = 180;
+    const radius2 = 200;
+
+    let colisaoAnterior = false;
+    let contadorColisoes = 0;
+    let tempoUltimaColisao = 0;
+    let tempoAtual = 0;
+
+    const explosoes = [];
+
+    function criarExplosao(x, y) {
+      for (let i = 0; i < 20; i++) {
+        explosoes.push({
+          x, y,
+          vx: (Math.random() - 0.5) * 4,
+          vy: (Math.random() - 0.5) * 4,
+          alpha: 1
+        });
+      }
+    }
+
+    function desenharExplosoes() {
+      for (let i = explosoes.length - 1; i >= 0; i--) {
+        const p = explosoes[i];
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, 2, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(255, 255, 100, ${p.alpha})`;
+        ctx.fill();
+        p.x += p.vx;
+        p.y += p.vy;
+        p.alpha -= 0.02;
+        if (p.alpha <= 0) explosoes.splice(i, 1);
+      }
+    }
 
     function drawAccelerator() {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-      // Desenha o anel acelerador (faixa)
+      // Fundo piscando rápido no momento da colisão
+      if (msg.textContent !== "") {
+        ctx.fillStyle = "rgba(255,0,0,0.1)";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+      }
+
+      // Desenha túnel
       ctx.beginPath();
       ctx.arc(center.x, center.y, (radius1 + radius2) / 2, 0, Math.PI * 2);
       ctx.strokeStyle = "#555";
@@ -64,33 +117,44 @@
       // Desenha partículas
       ctx.beginPath();
       ctx.arc(x1, y1, 8, 0, Math.PI * 2);
-      ctx.fillStyle = "#00ffcc"; // Azul
+      ctx.fillStyle = "#00ffcc";
       ctx.fill();
 
       ctx.beginPath();
       ctx.arc(x2, y2, 8, 0, Math.PI * 2);
-      ctx.fillStyle = "#ff6600"; // Laranja
+      ctx.fillStyle = "#ff6600";
       ctx.fill();
 
-      // Verifica colisão (quando os ângulos estiverem próximos)
+      // Verifica colisão
       const dx = x1 - x2;
       const dy = y1 - y2;
       const dist = Math.sqrt(dx * dx + dy * dy);
 
-      if (dist < 16) {
+      if (dist < 16 && !colisaoAnterior) {
+        contadorColisoes++;
+        contadorSpan.textContent = contadorColisoes;
+        tempoUltimaColisao = 0;
         msg.textContent = "💥 Colisão detectada!";
-      } else {
+        criarExplosao((x1 + x2) / 2, (y1 + y2) / 2);
+        colisaoAnterior = true;
+      }
+
+      if (dist >= 16) {
+        colisaoAnterior = false;
         msg.textContent = "";
       }
 
-      // Atualiza ângulos
+      desenharExplosoes();
+
       angle1 += speed;
       angle2 -= speed;
+
+      tempoUltimaColisao += 1 / 60;
+      tempoSpan.textContent = tempoUltimaColisao.toFixed(1);
 
       requestAnimationFrame(drawAccelerator);
     }
 
-    // Aumenta a velocidade ao clicar
     canvas.addEventListener("click", () => {
       speed += 0.005;
     });
@@ -99,5 +163,8 @@
   </script>
 </body>
 </html>
+
+
+
 
 
