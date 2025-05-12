@@ -37,50 +37,49 @@
     const msg = document.getElementById("mensagem");
 
     let angle1 = 0;
-    let angle2 = Math.PI; // posição oposta
+    let angle2 = Math.PI;
     let speed = 0.01;
-    let radius = 200;
     const center = { x: canvas.width / 2, y: canvas.height / 2 };
-    let colisao = false;
+
+    const radius1 = 180; // Partícula azul (mais interna)
+    const radius2 = 200; // Partícula laranja (mais externa)
 
     function drawAccelerator() {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-      // Desenha túnel
+      // Desenha o anel acelerador (faixa)
       ctx.beginPath();
-      ctx.arc(center.x, center.y, radius, 0, Math.PI * 2);
+      ctx.arc(center.x, center.y, (radius1 + radius2) / 2, 0, Math.PI * 2);
       ctx.strokeStyle = "#555";
-      ctx.lineWidth = 10;
+      ctx.lineWidth = (radius2 - radius1) + 10;
       ctx.stroke();
 
       // Posição das partículas
-      const x1 = center.x + radius * Math.cos(angle1);
-      const y1 = center.y + radius * Math.sin(angle1);
+      const x1 = center.x + radius1 * Math.cos(angle1);
+      const y1 = center.y + radius1 * Math.sin(angle1);
 
-      const x2 = center.x + radius * Math.cos(angle2);
-      const y2 = center.y + radius * Math.sin(angle2);
+      const x2 = center.x + radius2 * Math.cos(angle2);
+      const y2 = center.y + radius2 * Math.sin(angle2);
 
       // Desenha partículas
       ctx.beginPath();
       ctx.arc(x1, y1, 8, 0, Math.PI * 2);
-      ctx.fillStyle = "#00ffcc";
+      ctx.fillStyle = "#00ffcc"; // Azul
       ctx.fill();
 
       ctx.beginPath();
       ctx.arc(x2, y2, 8, 0, Math.PI * 2);
-      ctx.fillStyle = "#ff6600";
+      ctx.fillStyle = "#ff6600"; // Laranja
       ctx.fill();
 
-      // Verifica colisão
+      // Verifica colisão (quando os ângulos estiverem próximos)
       const dx = x1 - x2;
       const dy = y1 - y2;
       const dist = Math.sqrt(dx * dx + dy * dy);
 
       if (dist < 16) {
-        colisao = true;
         msg.textContent = "💥 Colisão detectada!";
       } else {
-        colisao = false;
         msg.textContent = "";
       }
 
@@ -91,7 +90,7 @@
       requestAnimationFrame(drawAccelerator);
     }
 
-    // Aumenta a velocidade com clique
+    // Aumenta a velocidade ao clicar
     canvas.addEventListener("click", () => {
       speed += 0.005;
     });
@@ -100,4 +99,5 @@
   </script>
 </body>
 </html>
+
 
