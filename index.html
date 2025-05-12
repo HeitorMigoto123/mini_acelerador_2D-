@@ -126,7 +126,8 @@
       nome: "Hidrogênio",
       cor1: "#00ffff",
       cor2: "#ff4444",
-      tamanho: 8
+      tamanho: 8,
+      massa: 1
     };
 
     // Função para criar explosão visual
@@ -161,30 +162,40 @@
       const valor = selectParticula.value;
 
       if (valor === "hidrogenio") {
-        particula = { nome: "Hidrogênio", cor1: "#00ffff", cor2: "#ff4444", tamanho: 8 };
+        particula = { nome: "Hidrogênio", cor1: "#00ffff", cor2: "#ff4444", tamanho: 8, massa: 1 };
         elementoInfo.textContent = "Hidrogênio (H): Partícula leve, mais rápida.";
       } else if (valor === "helio") {
-        particula = { nome: "Hélio", cor1: "#ffcc00", cor2: "#ff6600", tamanho: 10 };
+        particula = { nome: "Hélio", cor1: "#ffcc00", cor2: "#ff6600", tamanho: 10, massa: 4 };
         elementoInfo.textContent = "Hélio (He): Menor densidade, ainda mais rápido.";
       } else if (valor === "chumbo") {
-        particula = { nome: "Chumbo", cor1: "#aaaaaa", cor2: "#666666", tamanho: 12 };
+        particula = { nome: "Chumbo", cor1: "#aaaaaa", cor2: "#666666", tamanho: 12, massa: 207 };
         elementoInfo.textContent = "Chumbo (Pb): Partícula pesada e mais lenta.";
       } else if (valor === "oxigenio") {
-        particula = { nome: "Oxigênio", cor1: "#00ff00", cor2: "#ff0000", tamanho: 10 };
+        particula = { nome: "Oxigênio", cor1: "#00ff00", cor2: "#ff0000", tamanho: 10, massa: 16 };
         elementoInfo.textContent = "Oxigênio (O): Partícula moderadamente rápida.";
       } else if (valor === "carbono") {
-        particula = { nome: "Carbono", cor1: "#00ff00", cor2: "#ff8800", tamanho: 9 };
+        particula = { nome: "Carbono", cor1: "#00ff00", cor2: "#ff8800", tamanho: 9, massa: 12 };
         elementoInfo.textContent = "Carbono (C): Partícula equilibrada.";
       } else if (valor === "nitrogenio") {
-        particula = { nome: "Nítrogênio", cor1: "#0000ff", cor2: "#00ff00", tamanho: 10 };
+        particula = { nome: "Nítrogênio", cor1: "#0000ff", cor2: "#00ff00", tamanho: 10, massa: 14 };
         elementoInfo.textContent = "Nítrogênio (N): Partícula leve e rápida.";
       } else if (valor === "ferro") {
-        particula = { nome: "Ferro", cor1: "#cccccc", cor2: "#888888", tamanho: 11 };
+        particula = { nome: "Ferro", cor1: "#cccccc", cor2: "#888888", tamanho: 11, massa: 56 };
         elementoInfo.textContent = "Ferro (Fe): Partícula de massa média.";
       } else if (valor === "urânio") {
-        particula = { nome: "Urânio", cor1: "#999999", cor2: "#ff0000", tamanho: 13 };
+        particula = { nome: "Urânio", cor1: "#999999", cor2: "#ff0000", tamanho: 13, massa: 238 };
         elementoInfo.textContent = "Urânio (U): Partícula muito pesada e lenta.";
       }
+    }
+
+    // Função para calcular a energia cinética
+    function calcularEnergia(massa, velocidade) {
+      return 0.5 * massa * velocidade * velocidade;
+    }
+
+    // Função para calcular o momentum
+    function calcularMomentum(massa, velocidade) {
+      return massa * velocidade;
     }
 
     // Função principal de desenho do acelerador
@@ -230,65 +241,75 @@
       ctx.shadowBlur = 0;
 
       // Verifica colisão
-      const dx = x1 - x2;
-      const dy = y1 - y2;
-      const dist = Math.sqrt(dx * dx + dy * dy);
+      if (Math.hypot(x2 - x1, y2 - y1) <= (particula.tamanho * 2)) {
+        if (!colisaoAnterior) {
+          contadorColisoes++;
+          contadorSpan.textContent = contadorColisoes;
 
-      if (dist < particula.tamanho * 2 && !colisaoAnterior) {
-        contadorColisoes++;
-        contadorSpan.textContent = contadorColisoes;
-        tempoUltimaColisao = 0;
-        msg.textContent = "💥 Colisão detectada!";
+          // Registra a colisão no histórico
+          const energia1 = calcularEnergia(particula.massa, speed);
+          const energia2 = calcularEnergia(particula.massa, speed);
+          const momentum1 = calcularMomentum(particula.massa, speed);
+          const momentum2 = calcularMomentum(particula.massa, speed);
+          const dataColisao = {
+            data: new Date().toLocaleString(),
+            tipoParticula: particula.nome,
+            energia1: energia1.toFixed(2),
+            energia2: energia2.toFixed(2),
+            momentum1: momentum1.toFixed(2),
+            momentum2: momentum2.toFixed(2),
+          };
+          historicoColisoes.push(dataColisao);
+          atualizarHistorico();
 
-        // Armazena a colisão
-        const dataColisao = {
-          tipoParticula: particula.nome,
-          tempo: tempoUltimaColisao.toFixed(1),
-          data: new Date().toLocaleString()
-        };
+          // Cria uma explosão visual
+          criarExplosao(x1, y1);
+          criarExplosao(x2, y2);
 
-        historicoColisoes.push(dataColisao);
-        atualizarHistorico();
-
-        criarExplosao((x1 + x2) / 2, (y1 + y2) / 2);
-        colisaoAnterior = true;
+          colisaoAnterior = true;
+        }
       }
 
-      if (dist >= particula.tamanho * 2) {
-        colisaoAnterior = false;
-        msg.textContent = "";
+      // Atualiza tempo e reinicia colisão
+      if (colisaoAnterior) {
+        tempoUltimaColisao += 0.1;
+        if (tempoUltimaColisao > 2) {
+          colisaoAnterior = false;
+          msg.textContent = "";
+        }
       }
 
+      // Atualiza o tempo da última colisão
+      tempoSpan.textContent = tempoUltimaColisao.toFixed(2);
+
+      // Desenha as explosões
       desenharExplosoes();
 
+      // Atualiza as posições
       angle1 += speed;
       angle2 -= speed;
 
-      tempoUltimaColisao += 1 / 60;
-      tempoSpan.textContent = tempoUltimaColisao.toFixed(1);
-
+      // Chama o próximo frame
       requestAnimationFrame(drawAccelerator);
     }
 
-    // Atualiza o histórico de colisões
+    // Função para atualizar o histórico de colisões
     function atualizarHistorico() {
-      historicoLista.innerHTML = "";
+      historicoLista.innerHTML = '';
       historicoColisoes.forEach((colisao) => {
-        const li = document.createElement("li");
-        li.textContent = `${colisao.tipoParticula} - Colidiu em: ${colisao.data} (tempo: ${colisao.tempo}s)`;
+        const li = document.createElement('li');
+        li.textContent = `📅 ${colisao.data} | ${colisao.tipoParticula} | Energia1: ${colisao.energia1} | Energia2: ${colisao.energia2} | Momentum1: ${colisao.momentum1} | Momentum2: ${colisao.momentum2}`;
         historicoLista.appendChild(li);
       });
     }
 
-    // Atualiza as partículas quando o usuário seleciona algo
-    selectParticula.addEventListener("change", trocarParticula);
-
-    // Inicializa a simulação
+    // Configurações iniciais
     trocarParticula();
     drawAccelerator();
   </script>
 </body>
 </html>
+
 
 
 
