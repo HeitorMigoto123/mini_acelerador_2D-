@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Mini Acelerador de Partículas 2D</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      background-color: #111;
+      color: white;
+    }
+
+    canvas {
+      background-color: #222;
+      border: 2px solid white;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Mini Acelerador de Partículas</h1>
+  <canvas id="acceleratorCanvas" width="500" height="500"></canvas>
+  <p>Clique na tela para acelerar a partícula!</p>
+
+  <script>
+    const canvas = document.getElementById("acceleratorCanvas");
+    const ctx = canvas.getContext("2d");
+
+    let angle = 0;
+    let speed = 0.01;
+    let radius = 200;
+    const center = { x: canvas.width / 2, y: canvas.height / 2 };
+
+    function drawAccelerator() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // Desenha o túnel circular
+      ctx.beginPath();
+      ctx.arc(center.x, center.y, radius, 0, Math.PI * 2);
+      ctx.strokeStyle = "#555";
+      ctx.lineWidth = 10;
+      ctx.stroke();
+
+      // Calcula a posição da partícula
+      const x = center.x + radius * Math.cos(angle);
+      const y = center.y + radius * Math.sin(angle);
+
+      // Desenha a partícula
+      ctx.beginPath();
+      ctx.arc(x, y, 8, 0, Math.PI * 2);
+      ctx.fillStyle = "#00ffcc";
+      ctx.fill();
+
+      angle += speed;
+      requestAnimationFrame(drawAccelerator);
+    }
+
+    // Aumenta a velocidade ao clicar
+    canvas.addEventListener("click", () => {
+      speed += 0.005;
+    });
+
+    drawAccelerator();
+  </script>
+</body>
+</html>
