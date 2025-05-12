@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <title>Mini Acelerador de Partículas 2D</title>
+  <title>Colisor de Partículas 2D</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -16,47 +16,82 @@
       border: 2px solid white;
       margin-top: 20px;
     }
+
+    #mensagem {
+      margin-top: 20px;
+      font-size: 1.2em;
+      color: #ff4444;
+      font-weight: bold;
+    }
   </style>
 </head>
 <body>
-  <h1>Mini Acelerador de Partículas</h1>
+  <h1>Mini Colisor de Partículas</h1>
   <canvas id="acceleratorCanvas" width="500" height="500"></canvas>
-  <p>Clique na tela para acelerar a partícula!</p>
+  <p>Clique na tela para acelerar as partículas!</p>
+  <div id="mensagem"></div>
 
   <script>
     const canvas = document.getElementById("acceleratorCanvas");
     const ctx = canvas.getContext("2d");
+    const msg = document.getElementById("mensagem");
 
-    let angle = 0;
+    let angle1 = 0;
+    let angle2 = Math.PI; // posição oposta
     let speed = 0.01;
     let radius = 200;
     const center = { x: canvas.width / 2, y: canvas.height / 2 };
+    let colisao = false;
 
     function drawAccelerator() {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-      // Desenha o túnel circular
+      // Desenha túnel
       ctx.beginPath();
       ctx.arc(center.x, center.y, radius, 0, Math.PI * 2);
       ctx.strokeStyle = "#555";
       ctx.lineWidth = 10;
       ctx.stroke();
 
-      // Calcula a posição da partícula
-      const x = center.x + radius * Math.cos(angle);
-      const y = center.y + radius * Math.sin(angle);
+      // Posição das partículas
+      const x1 = center.x + radius * Math.cos(angle1);
+      const y1 = center.y + radius * Math.sin(angle1);
 
-      // Desenha a partícula
+      const x2 = center.x + radius * Math.cos(angle2);
+      const y2 = center.y + radius * Math.sin(angle2);
+
+      // Desenha partículas
       ctx.beginPath();
-      ctx.arc(x, y, 8, 0, Math.PI * 2);
+      ctx.arc(x1, y1, 8, 0, Math.PI * 2);
       ctx.fillStyle = "#00ffcc";
       ctx.fill();
 
-      angle += speed;
+      ctx.beginPath();
+      ctx.arc(x2, y2, 8, 0, Math.PI * 2);
+      ctx.fillStyle = "#ff6600";
+      ctx.fill();
+
+      // Verifica colisão
+      const dx = x1 - x2;
+      const dy = y1 - y2;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+
+      if (dist < 16) {
+        colisao = true;
+        msg.textContent = "💥 Colisão detectada!";
+      } else {
+        colisao = false;
+        msg.textContent = "";
+      }
+
+      // Atualiza ângulos
+      angle1 += speed;
+      angle2 -= speed;
+
       requestAnimationFrame(drawAccelerator);
     }
 
-    // Aumenta a velocidade ao clicar
+    // Aumenta a velocidade com clique
     canvas.addEventListener("click", () => {
       speed += 0.005;
     });
@@ -65,3 +100,4 @@
   </script>
 </body>
 </html>
+
