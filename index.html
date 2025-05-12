@@ -44,6 +44,26 @@
       font-size: 1.1em;
       font-weight: bold;
     }
+
+    #historico {
+      margin-top: 20px;
+      text-align: left;
+      font-size: 0.9em;
+      max-height: 200px;
+      overflow-y: auto;
+      border: 1px solid #444;
+      padding: 10px;
+    }
+
+    #historico ul {
+      list-style-type: none;
+      padding: 0;
+    }
+
+    #historico li {
+      padding: 5px;
+      border-bottom: 1px solid #333;
+    }
   </style>
 </head>
 <body>
@@ -59,12 +79,23 @@
       <label for="particula">Escolha uma partícula:</label>
       <select id="particula">
         <option value="hidrogenio">Hidrogênio (H)</option>
-        <option value="hélio">Hélio (He)</option>
+        <option value="helio">Hélio (He)</option>
         <option value="chumbo">Chumbo (Pb)</option>
         <option value="oxigenio">Oxigênio (O)</option>
+        <option value="carbono">Carbono (C)</option>
+        <option value="nitrogenio">Nítrogênio (N)</option>
+        <option value="ferro">Ferro (Fe)</option>
+        <option value="urânio">Urânio (U)</option>
       </select>
     </div>
     <div id="elemento-info"></div>
+  </div>
+
+  <div id="historico">
+    <h3>Histórico de Colisões:</h3>
+    <ul id="historico-lista">
+      <!-- Histórico de colisões será mostrado aqui -->
+    </ul>
   </div>
 
   <script>
@@ -76,6 +107,7 @@
     const tempoSpan = document.getElementById("tempo");
     const elementoInfo = document.getElementById("elemento-info");
     const selectParticula = document.getElementById("particula");
+    const historicoLista = document.getElementById("historico-lista");
 
     let angle1 = 0;
     let angle2 = Math.PI;
@@ -88,6 +120,7 @@
     let tempoUltimaColisao = 0;
 
     const explosoes = [];
+    const historicoColisoes = [];
 
     let particula = {
       nome: "Hidrogênio",
@@ -130,7 +163,7 @@
       if (valor === "hidrogenio") {
         particula = { nome: "Hidrogênio", cor1: "#00ffff", cor2: "#ff4444", tamanho: 8 };
         elementoInfo.textContent = "Hidrogênio (H): Partícula leve, mais rápida.";
-      } else if (valor === "hélio") {
+      } else if (valor === "helio") {
         particula = { nome: "Hélio", cor1: "#ffcc00", cor2: "#ff6600", tamanho: 10 };
         elementoInfo.textContent = "Hélio (He): Menor densidade, ainda mais rápido.";
       } else if (valor === "chumbo") {
@@ -139,6 +172,18 @@
       } else if (valor === "oxigenio") {
         particula = { nome: "Oxigênio", cor1: "#00ff00", cor2: "#ff0000", tamanho: 10 };
         elementoInfo.textContent = "Oxigênio (O): Partícula moderadamente rápida.";
+      } else if (valor === "carbono") {
+        particula = { nome: "Carbono", cor1: "#00ff00", cor2: "#ff8800", tamanho: 9 };
+        elementoInfo.textContent = "Carbono (C): Partícula equilibrada.";
+      } else if (valor === "nitrogenio") {
+        particula = { nome: "Nítrogênio", cor1: "#0000ff", cor2: "#00ff00", tamanho: 10 };
+        elementoInfo.textContent = "Nítrogênio (N): Partícula leve e rápida.";
+      } else if (valor === "ferro") {
+        particula = { nome: "Ferro", cor1: "#cccccc", cor2: "#888888", tamanho: 11 };
+        elementoInfo.textContent = "Ferro (Fe): Partícula de massa média.";
+      } else if (valor === "urânio") {
+        particula = { nome: "Urânio", cor1: "#999999", cor2: "#ff0000", tamanho: 13 };
+        elementoInfo.textContent = "Urânio (U): Partícula muito pesada e lenta.";
       }
     }
 
@@ -194,6 +239,17 @@
         contadorSpan.textContent = contadorColisoes;
         tempoUltimaColisao = 0;
         msg.textContent = "💥 Colisão detectada!";
+
+        // Armazena a colisão
+        const dataColisao = {
+          tipoParticula: particula.nome,
+          tempo: tempoUltimaColisao.toFixed(1),
+          data: new Date().toLocaleString()
+        };
+
+        historicoColisoes.push(dataColisao);
+        atualizarHistorico();
+
         criarExplosao((x1 + x2) / 2, (y1 + y2) / 2);
         colisaoAnterior = true;
       }
@@ -214,6 +270,16 @@
       requestAnimationFrame(drawAccelerator);
     }
 
+    // Atualiza o histórico de colisões
+    function atualizarHistorico() {
+      historicoLista.innerHTML = "";
+      historicoColisoes.forEach((colisao) => {
+        const li = document.createElement("li");
+        li.textContent = `${colisao.tipoParticula} - Colidiu em: ${colisao.data} (tempo: ${colisao.tempo}s)`;
+        historicoLista.appendChild(li);
+      });
+    }
+
     // Atualiza as partículas quando o usuário seleciona algo
     selectParticula.addEventListener("change", trocarParticula);
 
@@ -223,6 +289,7 @@
   </script>
 </body>
 </html>
+
 
 
 
